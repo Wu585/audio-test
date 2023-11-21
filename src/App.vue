@@ -2,6 +2,7 @@
 import {ref} from "vue";
 import Test from "./components/Test.vue";
 import Chat from "./components/Chat.vue";
+import axios from "axios";
 
 const isRecording = ref(false)
 const mediaRecorder = ref(null)
@@ -57,6 +58,10 @@ const sendVoiceMessage = () => {
   reader.readAsDataURL(blob);
 }
 
+const audioSrcRef = ref("")
+const audioRef = ref()
+console.log('audioRef');
+console.log(audioRef);
 
 const onXiApi = () => {
   const options = {
@@ -68,9 +73,29 @@ const onXiApi = () => {
     body: '{"model_id":"eleven_monolingual_v1","text":"你好，今天天气真好"}'
   };
 
-  fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM/stream', options)
+  axios.post("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM/stream",{
+    model_id:"eleven_monolingual_v1",
+    text:"你好，今天天气真好"
+  },{
+    headers:{
+      'xi-api-key': '45cd7dc97cd931754b7293d84d8bc2aa',
+      'Content-Type': 'application/json'
+    },
+  }).then(res=>{
+    console.log('res');
+    console.log(res);
+    console.log('typeof res.data')
+    console.log(typeof res.data)
+
+    const mp3Url = URL.createObjectURL(new Blob([res.data],{type:"audio/mpeg"}))
+    console.log('mp3Url')
+    console.log(mp3Url.slice(5))
+    audioSrcRef.value = mp3Url
+  })
+
+ /* fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM/stream', options)
       .then(response => {
-        const url = new Blob([response.body],{type:"audio/mpeg"})
+       /!* const url = new Blob([response.body],{type:"audio/mpeg"})
         console.log('url');
         console.log(url);
         const src = URL.createObjectURL(url)
@@ -78,8 +103,8 @@ const onXiApi = () => {
 
         audioElement.src = src;
 
-        audioElement.play();
-      })
+        audioElement.play();*!/
+      })*/
 
 }
 
@@ -92,6 +117,7 @@ const onXiApi = () => {
     <!--    <button @click="sendVoiceMessage" :disabled="isRecording || isSending">Send Message</button>-->
     <Test/>
     <div @click="onXiApi">xi-api</div>
+    <audio :ref="audioRef"  autoplay controls :src="audioSrcRef">11</audio>
     <!--    <Chat/>-->
   </div>
 </template>
